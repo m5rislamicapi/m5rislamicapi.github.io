@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>جارٍ تحويل الرابط...</title>
+  <script>
+    (() => {
+      'use strict';
+
+      // عدّل هذه المصفوفة وضع نطاقات الوجهات المطلوبة.
+      const DESTINATIONS = [
+        'https://m5rislamic-apigithubio.vercel.app'
+      ];
+
+      // بادئة مجلد المشروع على الاستضافة؛ تُعامل كأنها غير موجودة.
+      const DEPLOYMENT_PREFIX = '/m5rislamicapi-redir';
+
+      function normalizeDestination(value) {
+        let text = String(value ?? '').trim();
+        if (!text) return null;
+        if (!/^https?:\/\//i.test(text)) text = 'https://' + text;
+        try {
+          const url = new URL(text);
+          if (!['http:', 'https:'].includes(url.protocol)) return null;
+          url.pathname = url.pathname.replace(/\/+$/, '') || '/';
+          return url;
+        } catch {
+          return null;
+        }
+      }
+
+      const currentHost = window.location.hostname.toLowerCase();
+      const destinations = DESTINATIONS
+        .map(normalizeDestination)
+        .filter(url => url && url.hostname.toLowerCase() !== currentHost);
+
+      if (!destinations.length) {
+        document.addEventListener('DOMContentLoaded', () => {
+          document.body.textContent = 'لا توجد وجهات صالحة. عدّل مصفوفة DESTINATIONS داخل index.html.';
+        });
+        return;
+      }
+
+      // اختيار وجهة عشوائية في كل زيارة.
+      const destination = destinations[Math.floor(Math.random() * destinations.length)];
+      let incomingPath = window.location.pathname || '/';
+
+      // احذف بادئة مجلد المشروع فقط إذا كانت في بداية المسار.
+      // أمثلة: /m5rislamicapi-redir/sounds -> /sounds
+      const lowerPath = incomingPath.toLowerCase();
+      const lowerPrefix = DEPLOYMENT_PREFIX.toLowerCase();
+      if (lowerPath === lowerPrefix || lowerPath === lowerPrefix + '/') {
+        incomingPath = '/';
+      } else if (lowerPath.startsWith(lowerPrefix + '/')) {
+        incomingPath = incomingPath.slice(DEPLOYMENT_PREFIX.length) || '/';
+      }
+
+      // تعامل مع index.html كجذر، فلا يظهر في وجهة التحويل.
+      if (/^\/index\.html\/?$/i.test(incomingPath)) incomingPath = '/';
+
+      // دمج المسار مع أي مسار أساس محدد في رابط الوجهة.
+      const basePath = destination.pathname === '/' ? '' : destination.pathname.replace(/\/$/, '');
+      const relativePath = incomingPath.replace(/^\/+/, '');
+      destination.pathname = (basePath + '/' + relativePath).replace(/\/{2,}/g, '/') || '/';
+      destination.search = window.location.search;
+      destination.hash = window.location.hash;
+
+      // لا تُبقِ صفحة التحويل في سجل الرجوع.
+      window.location.replace(destination.href);
+    })();
+  </script>
+</head>
+<body>
+  <p>جارٍ تحويلك إلى الوجهة المناسبة...</p>
+  <noscript>يلزم تفعيل JavaScript لإتمام التحويل.</noscript>
+</body>
+</html>
