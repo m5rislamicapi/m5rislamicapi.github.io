@@ -4,76 +4,74 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
   <title>جارٍ تحويل الرابط...</title>
   <script>
     (() => {
       'use strict';
 
-      // عدّل هذه المصفوفة وضع نطاقات الوجهات المطلوبة.
+      // يختار عشوائيًا إحدى الوجهتين في كل زيارة.
       const DESTINATIONS = [
-        'https://m5rislamic-apigithubio.vercel.app'
+        'https://m5rislamic-apigithubio.vercel.app',
+        'https://m5rislamic2-apigithubio.vercel.app'
       ];
 
-      // بادئة مجلد المشروع على الاستضافة؛ تُعامل كأنها غير موجودة.
-      const DEPLOYMENT_PREFIX = '/m5rislamicapi-redir';
+      // اسم مستودع GitHub Pages الذي يظهر كبادئة في رابط المشروع.
+      const REPOSITORY_PREFIX = '/m5rislamicapi-redir';
 
-      function normalizeDestination(value) {
-        let text = String(value ?? '').trim();
-        if (!text) return null;
-        if (!/^https?:\/\//i.test(text)) text = 'https://' + text;
-        try {
-          const url = new URL(text);
-          if (!['http:', 'https:'].includes(url.protocol)) return null;
-          url.pathname = url.pathname.replace(/\/+$/, '') || '/';
-          return url;
-        } catch {
-          return null;
-        }
+      function getValidDestinations() {
+        const currentHost = window.location.hostname.toLowerCase();
+        return DESTINATIONS
+          .map(value => {
+            try {
+              const url = new URL(value);
+              return ['https:', 'http:'].includes(url.protocol) ? url : null;
+            } catch {
+              return null;
+            }
+          })
+          .filter(url => url && url.hostname.toLowerCase() !== currentHost);
       }
 
-      const currentHost = window.location.hostname.toLowerCase();
-      const destinations = DESTINATIONS
-        .map(normalizeDestination)
-        .filter(url => url && url.hostname.toLowerCase() !== currentHost);
-
+      const destinations = getValidDestinations();
       if (!destinations.length) {
         document.addEventListener('DOMContentLoaded', () => {
-          document.body.textContent = 'لا توجد وجهات صالحة. عدّل مصفوفة DESTINATIONS داخل index.html.';
+          document.body.textContent = 'لا توجد وجهات صالحة في مصفوفة DESTINATIONS.';
         });
         return;
       }
 
-      // اختيار وجهة عشوائية في كل زيارة.
+      // اختر وجهة واحدة عشوائيًا.
       const destination = destinations[Math.floor(Math.random() * destinations.length)];
-      let incomingPath = window.location.pathname || '/';
+      let path = window.location.pathname || '/';
 
-      // احذف بادئة مجلد المشروع فقط إذا كانت في بداية المسار.
-      // أمثلة: /m5rislamicapi-redir/sounds -> /sounds
-      const lowerPath = incomingPath.toLowerCase();
-      const lowerPrefix = DEPLOYMENT_PREFIX.toLowerCase();
-      if (lowerPath === lowerPrefix || lowerPath === lowerPrefix + '/') {
-        incomingPath = '/';
-      } else if (lowerPath.startsWith(lowerPrefix + '/')) {
-        incomingPath = incomingPath.slice(DEPLOYMENT_PREFIX.length) || '/';
+      // احذف اسم المستودع فقط إذا كان أول المسار أو المسار كله.
+      // /m5rislamicapi-redir/ebtihalat/ => /ebtihalat/
+      // /m5rislamicapi-redir/            => /
+      const prefixLower = REPOSITORY_PREFIX.toLowerCase();
+      const pathLower = path.toLowerCase();
+      if (pathLower === prefixLower || pathLower === prefixLower + '/') {
+        path = '/';
+      } else if (pathLower.startsWith(prefixLower + '/')) {
+        path = path.slice(REPOSITORY_PREFIX.length) || '/';
       }
 
-      // تعامل مع index.html كجذر، فلا يظهر في وجهة التحويل.
-      if (/^\/index\.html\/?$/i.test(incomingPath)) incomingPath = '/';
+      // اجعل index.html مساويًا للجذر.
+      if (/^\/index\.html\/?$/i.test(path)) path = '/';
+      if (!path.startsWith('/')) path = '/' + path;
 
-      // دمج المسار مع أي مسار أساس محدد في رابط الوجهة.
-      const basePath = destination.pathname === '/' ? '' : destination.pathname.replace(/\/$/, '');
-      const relativePath = incomingPath.replace(/^\/+/, '');
-      destination.pathname = (basePath + '/' + relativePath).replace(/\/{2,}/g, '/') || '/';
+      // تعيين المسار مباشرةً على نطاق الوجهة مع الحفاظ على query و hash.
+      destination.pathname = path;
       destination.search = window.location.search;
       destination.hash = window.location.hash;
 
-      // لا تُبقِ صفحة التحويل في سجل الرجوع.
+      // تحويل تلقائي دائم عند فتح الصفحة، دون إبقاء صفحة التحويل في سجل الرجوع.
       window.location.replace(destination.href);
     })();
   </script>
 </head>
 <body>
-  <p>جارٍ تحويلك إلى الوجهة المناسبة...</p>
-  <noscript>يلزم تفعيل JavaScript لإتمام التحويل.</noscript>
+  <p>جارٍ تحويلك إلى الموقع...</p>
+  <noscript>يرجى تفعيل JavaScript لإتمام إعادة التوجيه.</noscript>
 </body>
 </html>

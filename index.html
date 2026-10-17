@@ -4,51 +4,74 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
   <title>جارٍ تحويل الرابط...</title>
   <script>
-(() => {
-  'use strict';
+    (() => {
+      'use strict';
 
-  const TARGET_ORIGIN = 'https://m5rislamic-apigithubio.vercel.app';
-  const IGNORED_PREFIX = '/m5rislamicapi-redir';
+      // يختار عشوائيًا إحدى الوجهتين في كل زيارة.
+      const DESTINATIONS = [
+        'https://m5rislamic-apigithubio.vercel.app',
+        'https://m5rislamic2-apigithubio.vercel.app'
+      ];
 
-  // المسار الحالي
-  let path = window.location.pathname || '/';
+      // اسم مستودع GitHub Pages الذي يظهر كبادئة في رابط المشروع.
+      const REPOSITORY_PREFIX = '/m5rislamicapi-redir';
 
-  const normalizedPath = path.toLowerCase();
-  const prefix = IGNORED_PREFIX.toLowerCase();
+      function getValidDestinations() {
+        const currentHost = window.location.hostname.toLowerCase();
+        return DESTINATIONS
+          .map(value => {
+            try {
+              const url = new URL(value);
+              return ['https:', 'http:'].includes(url.protocol) ? url : null;
+            } catch {
+              return null;
+            }
+          })
+          .filter(url => url && url.hostname.toLowerCase() !== currentHost);
+      }
 
-  // تجاهل اسم المستودع فقط إذا كان في بداية المسار
-  if (
-    normalizedPath === prefix ||
-    normalizedPath.startsWith(prefix + '/')
-  ) {
-    path = path.slice(IGNORED_PREFIX.length) || '/';
-  }
+      const destinations = getValidDestinations();
+      if (!destinations.length) {
+        document.addEventListener('DOMContentLoaded', () => {
+          document.body.textContent = 'لا توجد وجهات صالحة في مصفوفة DESTINATIONS.';
+        });
+        return;
+      }
 
-  // المسار الأساسي يجب أن يكون /
-  if (!path) {
-    path = '/';
-  }
+      // اختر وجهة واحدة عشوائيًا.
+      const destination = destinations[Math.floor(Math.random() * destinations.length)];
+      let path = window.location.pathname || '/';
 
-  // index.html يعادل المسار الأساسي
-  if (/^\/index\.html\/?$/i.test(path)) {
-    path = '/';
-  }
+      // احذف اسم المستودع فقط إذا كان أول المسار أو المسار كله.
+      // /m5rislamicapi-redir/ebtihalat/ => /ebtihalat/
+      // /m5rislamicapi-redir/            => /
+      const prefixLower = REPOSITORY_PREFIX.toLowerCase();
+      const pathLower = path.toLowerCase();
+      if (pathLower === prefixLower || pathLower === prefixLower + '/') {
+        path = '/';
+      } else if (pathLower.startsWith(prefixLower + '/')) {
+        path = path.slice(REPOSITORY_PREFIX.length) || '/';
+      }
 
-  // إنشاء الرابط النهائي
-  const target = new URL(TARGET_ORIGIN);
-  target.pathname = path;
-  target.search = window.location.search;
-  target.hash = window.location.hash;
+      // اجعل index.html مساويًا للجذر.
+      if (/^\/index\.html\/?$/i.test(path)) path = '/';
+      if (!path.startsWith('/')) path = '/' + path;
 
-  // تنفيذ التحويل
-  window.location.replace(target.href);
-})();
-</script>
+      // تعيين المسار مباشرةً على نطاق الوجهة مع الحفاظ على query و hash.
+      destination.pathname = path;
+      destination.search = window.location.search;
+      destination.hash = window.location.hash;
+
+      // تحويل تلقائي دائم عند فتح الصفحة، دون إبقاء صفحة التحويل في سجل الرجوع.
+      window.location.replace(destination.href);
+    })();
+  </script>
 </head>
 <body>
-  <p>جارٍ تحويلك إلى الوجهة المناسبة...</p>
-  <noscript>يلزم تفعيل JavaScript لإتمام التحويل.</noscript>
+  <p>جارٍ تحويلك إلى الموقع...</p>
+  <noscript>يرجى تفعيل JavaScript لإتمام إعادة التوجيه.</noscript>
 </body>
 </html>

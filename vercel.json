@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" },
-    { "source": "/(.*)", "destination": "/m5rislamicapi-redir" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
