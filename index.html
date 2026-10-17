@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>جارٍ تحويل الرابط...</title>
+  <script>
+    (() => {
+      'use strict';
+
+      // ضع النطاقات المستهدفة هنا، مع https:// أو بدونه.
+      const DESTINATIONS = [
+        'https://m5rislamic-apigithubio.vercel.app'
+      ];
+
+      function normalizeDestination(value) {
+        let text = String(value ?? '').trim();
+        if (!text) return null;
+        if (!/^https?:\/\//i.test(text)) text = 'https://' + text;
+
+        try {
+          const url = new URL(text);
+          if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+          // احذف الشرطة النهائية من مسار الوجهة لتجنب تكرار الشرطات.
+          url.pathname = url.pathname.replace(/\/+$/, '') || '/';
+          return url;
+        } catch {
+          return null;
+        }
+      }
+
+      const currentHost = window.location.hostname.toLowerCase();
+      const destinations = DESTINATIONS
+        .map(normalizeDestination)
+        .filter(url => url && url.hostname.toLowerCase() !== currentHost);
+
+      if (destinations.length === 0) {
+        document.addEventListener('DOMContentLoaded', () => {
+          document.body.textContent =
+            'لا توجد وجهات صالحة. عدّل مصفوفة DESTINATIONS داخل ملف index.html.';
+        });
+        return;
+      }
+
+      // اختيار عشوائي من النطاقات المحددة عند كل زيارة.
+      const destination = destinations[Math.floor(Math.random() * destinations.length)];
+
+      // حافظ على المسار الأصلي، مع دمجه مع أي مسار أساس موجود في الوجهة.
+      let incomingPath = window.location.pathname || '/';
+      // عامل /index.html كعنوان الجذر؛ لا تُضف index.html إلى وجهة التحويل.
+      if (/^\/index\.html\/?$/i.test(incomingPath)) incomingPath = '/';
+
+      const basePath = destination.pathname === '/' ? '' : destination.pathname.replace(/\/$/, '');
+      const joinedPath = (basePath + '/' + incomingPath.replace(/^\/+/, '')).replace(/\/{2,}/g, '/');
+      destination.pathname = joinedPath || '/';
+      destination.search = window.location.search;
+      destination.hash = window.location.hash;
+
+      // replace يمنع الرجوع إلى صفحة التحويل بزر الرجوع في المتصفح.
+      window.location.replace(destination.href);
+    })();
+  </script>
+</head>
+<body>
+  <p>جارٍ تحويلك إلى الوجهة المناسبة...</p>
+  <noscript>يلزم تفعيل JavaScript لإتمام التحويل.</noscript>
+</body>
+</html>
