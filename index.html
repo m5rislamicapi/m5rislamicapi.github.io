@@ -5,39 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="expires" content="0">
   <title>جارٍ تحويل الرابط...</title>
   <script>
   (() => {
     'use strict';
-  
-    // الوجهة المؤكدة حاليًا. لا تضف النطاق الثاني حتى يُصلح خطأ 404.
+
+    // الوجهة التي تم التحقق من أنها تعمل.
     const TARGET_ORIGIN = 'https://m5rislamic-apigithubio.vercel.app';
+    // اسم المستودع الذي يجب تجاهله عندما يظهر كبادئة للمسار.
     const REPOSITORY_PREFIX = '/m5rislamicapi-redir';
-  
+
     let path = window.location.pathname || '/';
-    const decodedPrefix = REPOSITORY_PREFIX.toLowerCase();
-    const currentPathLower = path.toLowerCase();
-  
-    // احذف اسم المستودع فقط عندما يكون بادئة للمسار.
-    // /m5rislamicapi-redir/             => /
-    // /m5rislamicapi-redir/ebtihalat/   => /ebtihalat/
-    // /ebtihalat/                       => /ebtihalat/
-    if (currentPathLower === decodedPrefix || currentPathLower === decodedPrefix + '/') {
+    const prefix = REPOSITORY_PREFIX.toLowerCase();
+    const currentPath = path.toLowerCase();
+
+    // /m5rislamicapi-redir/            -> /
+    // /m5rislamicapi-redir/ebtihalat/  -> /ebtihalat/
+    // /ebtihalat/                      -> /ebtihalat/
+    if (currentPath === prefix || currentPath === prefix + '/') {
       path = '/';
-    } else if (currentPathLower.startsWith(decodedPrefix + '/')) {
+    } else if (currentPath.startsWith(prefix + '/')) {
       path = path.slice(REPOSITORY_PREFIX.length) || '/';
     }
-  
-    // index.html يعادل المسار الأساسي.
+
+    // index.html هو المسار الأساسي.
     if (/^\/index\.html\/?$/i.test(path)) path = '/';
     if (!path.startsWith('/')) path = '/' + path;
-  
+
     const target = new URL(TARGET_ORIGIN);
     target.pathname = path;
     target.search = window.location.search;
     target.hash = window.location.hash;
-  
-    // استبدال صفحة التحويل في سجل المتصفح.
+
     window.location.replace(target.href);
   })();
   </script>
