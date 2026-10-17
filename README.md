@@ -1,5 +1,5 @@
 ## Hi there 👋
-https://m5rislamicapi-redir.github.io/m5rislamicapi-redir/
+https://m5rislamicapi.github.io/m5rislamicapi-redir/
 
 <!--
 **m5rislamicapi-redir/m5rislamicapi-redir** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
