@@ -9,101 +9,41 @@
 (() => {
   'use strict';
 
-  // الروابط المستهدفة: استبدلها بنطاقاتك الحقيقية
-  const DESTINATIONS = [
-    'https://test.com',
-    'https://test2.com'
-  ];
-
-  // البادئة المطلوب تجاهلها
+  const TARGET_ORIGIN = 'https://m5rislamic-apigithubio.vercel.app';
   const IGNORED_PREFIX = '/m5rislamicapi-redir';
 
-  // التحقق من الروابط وتجهيزها
-  function normalizeDestination(value) {
-    let text = String(value ?? '').trim();
-
-    if (!text) return null;
-
-    if (!/^https?:\/\//i.test(text)) {
-      text = 'https://' + text;
-    }
-
-    try {
-      const url = new URL(text);
-
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return null;
-      }
-
-      return url;
-    } catch {
-      return null;
-    }
-  }
-
-  // تجهيز الوجهات واستبعاد النطاق الحالي
-  const currentHost = window.location.hostname.toLowerCase();
-
-  const destinations = DESTINATIONS
-    .map(normalizeDestination)
-    .filter(url =>
-      url && url.hostname.toLowerCase() !== currentHost
-    );
-
-  // عرض رسالة إذا لم توجد وجهات صالحة
-  function showError(message) {
-    document.addEventListener('DOMContentLoaded', () => {
-      document.body.textContent = message;
-    });
-  }
-
-  if (destinations.length === 0) {
-    showError('لا توجد روابط مستهدفة صالحة. تحقق من DESTINATIONS.');
-    return;
-  }
-
-  // اختيار وجهة عشوائية
-  const destination =
-    destinations[Math.floor(Math.random() * destinations.length)];
-
-  // قراءة المسار الأصلي
+  // المسار الحالي
   let path = window.location.pathname || '/';
 
-  // تجاهل البادئة في بداية المسار فقط
-  const lowerPath = path.toLowerCase();
-  const lowerPrefix = IGNORED_PREFIX.toLowerCase();
+  const normalizedPath = path.toLowerCase();
+  const prefix = IGNORED_PREFIX.toLowerCase();
 
+  // تجاهل اسم المستودع فقط إذا كان في بداية المسار
   if (
-    lowerPath === lowerPrefix ||
-    lowerPath.startsWith(lowerPrefix + '/')
+    normalizedPath === prefix ||
+    normalizedPath.startsWith(prefix + '/')
   ) {
     path = path.slice(IGNORED_PREFIX.length) || '/';
   }
 
-  // ضمان أن المسار يبدأ بشرطة مائلة
-  if (!path.startsWith('/')) {
-    path = '/' + path;
+  // المسار الأساسي يجب أن يكون /
+  if (!path) {
+    path = '/';
   }
 
-  // اعتبار index.html هو المسار الأساسي
+  // index.html يعادل المسار الأساسي
   if (/^\/index\.html\/?$/i.test(path)) {
     path = '/';
   }
 
-  // دمج المسار المتبقي مع مسار الوجهة الأساسي
-  const basePath =
-    destination.pathname === '/'
-      ? ''
-      : destination.pathname.replace(/\/+$/, '');
+  // إنشاء الرابط النهائي
+  const target = new URL(TARGET_ORIGIN);
+  target.pathname = path;
+  target.search = window.location.search;
+  target.hash = window.location.hash;
 
-  destination.pathname = basePath + path;
-
-  // الحفاظ على معاملات الاستعلام والـ hash
-  destination.search = window.location.search;
-  destination.hash = window.location.hash;
-
-  // الانتقال إلى الوجهة
-  window.location.replace(destination.href);
+  // تنفيذ التحويل
+  window.location.replace(target.href);
 })();
 </script>
 </head>
