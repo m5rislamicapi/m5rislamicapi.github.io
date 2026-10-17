@@ -7,67 +7,39 @@
   <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
   <title>جارٍ تحويل الرابط...</title>
   <script>
-    (() => {
-      'use strict';
-
-      // يختار عشوائيًا إحدى الوجهتين في كل زيارة.
-      const DESTINATIONS = [
-        'https://m5rislamic-apigithubio.vercel.app',
-        'https://m5rislamic2-apigithubio.vercel.app'
-      ];
-
-      // اسم مستودع GitHub Pages الذي يظهر كبادئة في رابط المشروع.
-      const REPOSITORY_PREFIX = '/m5rislamicapi-redir';
-
-      function getValidDestinations() {
-        const currentHost = window.location.hostname.toLowerCase();
-        return DESTINATIONS
-          .map(value => {
-            try {
-              const url = new URL(value);
-              return ['https:', 'http:'].includes(url.protocol) ? url : null;
-            } catch {
-              return null;
-            }
-          })
-          .filter(url => url && url.hostname.toLowerCase() !== currentHost);
-      }
-
-      const destinations = getValidDestinations();
-      if (!destinations.length) {
-        document.addEventListener('DOMContentLoaded', () => {
-          document.body.textContent = 'لا توجد وجهات صالحة في مصفوفة DESTINATIONS.';
-        });
-        return;
-      }
-
-      // اختر وجهة واحدة عشوائيًا.
-      const destination = destinations[Math.floor(Math.random() * destinations.length)];
-      let path = window.location.pathname || '/';
-
-      // احذف اسم المستودع فقط إذا كان أول المسار أو المسار كله.
-      // /m5rislamicapi-redir/ebtihalat/ => /ebtihalat/
-      // /m5rislamicapi-redir/            => /
-      const prefixLower = REPOSITORY_PREFIX.toLowerCase();
-      const pathLower = path.toLowerCase();
-      if (pathLower === prefixLower || pathLower === prefixLower + '/') {
-        path = '/';
-      } else if (pathLower.startsWith(prefixLower + '/')) {
-        path = path.slice(REPOSITORY_PREFIX.length) || '/';
-      }
-
-      // اجعل index.html مساويًا للجذر.
-      if (/^\/index\.html\/?$/i.test(path)) path = '/';
-      if (!path.startsWith('/')) path = '/' + path;
-
-      // تعيين المسار مباشرةً على نطاق الوجهة مع الحفاظ على query و hash.
-      destination.pathname = path;
-      destination.search = window.location.search;
-      destination.hash = window.location.hash;
-
-      // تحويل تلقائي دائم عند فتح الصفحة، دون إبقاء صفحة التحويل في سجل الرجوع.
-      window.location.replace(destination.href);
-    })();
+  (() => {
+    'use strict';
+  
+    // الوجهة المؤكدة حاليًا. لا تضف النطاق الثاني حتى يُصلح خطأ 404.
+    const TARGET_ORIGIN = 'https://m5rislamic-apigithubio.vercel.app';
+    const REPOSITORY_PREFIX = '/m5rislamicapi-redir';
+  
+    let path = window.location.pathname || '/';
+    const decodedPrefix = REPOSITORY_PREFIX.toLowerCase();
+    const currentPathLower = path.toLowerCase();
+  
+    // احذف اسم المستودع فقط عندما يكون بادئة للمسار.
+    // /m5rislamicapi-redir/             => /
+    // /m5rislamicapi-redir/ebtihalat/   => /ebtihalat/
+    // /ebtihalat/                       => /ebtihalat/
+    if (currentPathLower === decodedPrefix || currentPathLower === decodedPrefix + '/') {
+      path = '/';
+    } else if (currentPathLower.startsWith(decodedPrefix + '/')) {
+      path = path.slice(REPOSITORY_PREFIX.length) || '/';
+    }
+  
+    // index.html يعادل المسار الأساسي.
+    if (/^\/index\.html\/?$/i.test(path)) path = '/';
+    if (!path.startsWith('/')) path = '/' + path;
+  
+    const target = new URL(TARGET_ORIGIN);
+    target.pathname = path;
+    target.search = window.location.search;
+    target.hash = window.location.hash;
+  
+    // استبدال صفحة التحويل في سجل المتصفح.
+    window.location.replace(target.href);
+  })();
   </script>
 </head>
 <body>
